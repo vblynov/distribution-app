@@ -1,0 +1,107 @@
+syntax = "proto3";
+package com.vblynov.distirbution.model;
+option java_multiple_files = true;
+
+//*************************************** Main wrapper *****************************************************************
+
+message DistributionProtocol {
+    enum MessageType {
+        LOGIN_REQUEST = 0;
+        LOGIN_RESPONSE = 1;
+
+        OPTION_REQUEST = 2;
+        STOCK_REQUEST = 3;
+        OPTION_RESPONSE = 4;
+        STOCK_RESPONSE = 5;
+
+        ERROR = 6;
+        EMPTY = 7;
+        LAST = 8;
+    }
+
+    string token = 1;
+    string correlationId = 2;
+
+    MessageType messageType = 3;
+
+    oneof message {
+        LoginRequest loginRequest = 4;
+        LoginResponse loginResponse = 5;
+        OptionRequest optionRequest = 6;
+        StockRequest stockRequest = 7;
+        Option option = 8;
+        Stock stock = 9;
+        Error errorMessage = 128;
+    }
+}
+
+//******************************************* Protocol messages ********************************************************
+
+message LoginRequest {
+    string user = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    enum LoginResult {
+        OK = 0;
+        FORBIDDEN = 1;
+        ERROR = 2;
+    }
+    LoginResult result = 1;
+}
+
+message Error {
+    string message = 1;
+}
+
+message OptionIdentifier {
+    OptionIdentifierType type = 1;
+    string value = 2;
+}
+
+message OptionRequest {
+    repeated OptionIdentifier identifiers = 1;
+    Option sample = 2;
+}
+
+message StockRequest {
+    StockIdentifierType identifierType = 2;
+    string value = 3;
+}
+
+//********************************************** Domain objects representation******************************************
+
+enum EntityType {
+    OPTION = 0;
+    STOCK = 1;
+}
+
+enum OptionIdentifierType {
+    OPTION_RIC = 0;
+    OPTION_ISIN = 1;
+}
+
+enum StockIdentifierType {
+    STOCK_RIC = 0;
+    STOCK_ISIN = 1;
+}
+
+message Option {
+    string ric = 1;
+    string isin = 2;
+    string description = 3;
+    string name = 4;
+}
+
+message Stock {
+    string ric = 1;
+    string isin = 2;
+    string name = 3;
+    string description = 4;
+}
+
+
+
+
+
