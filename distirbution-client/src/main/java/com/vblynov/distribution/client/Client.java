@@ -1,15 +1,18 @@
 package com.vblynov.distribution.client;
 
 import com.vblynov.distirbution.model.*;
+import com.vblynov.distribution.client.response.ClientFuture;
+import com.vblynov.distribution.client.response.Response;
+
+import java.util.function.Consumer;
 
 public interface Client {
 
-    //TODO consider API with promise result
-    void login(LoginRequest loginRequest, ResponseHandler<LoginResponse> handler);
+    ClientFuture<LoginResponse> login(LoginRequest loginRequest);
 
-    void get(OptionRequest searchRequest, ResponseHandler<Option> handler);
+    ClientFuture<Response> get(OptionRequest searchRequest, Consumer<Option> handler);
 
-    void get(StockRequest searchRequest, ResponseHandler<Stock> handler);
+    ClientFuture<Response> get(StockRequest searchRequest, Consumer<Stock> handler);
 
     void close();
 

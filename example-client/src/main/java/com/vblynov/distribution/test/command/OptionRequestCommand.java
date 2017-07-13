@@ -1,11 +1,15 @@
 package com.vblynov.distribution.test.command;
 
 import com.vblynov.distirbution.model.*;
-import com.vblynov.distirbution.model.Error;
 import com.vblynov.distribution.client.Client;
-import com.vblynov.distribution.client.ResponseHandler;
+import com.vblynov.distribution.client.response.ClientFuture;
+import com.vblynov.distribution.client.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class OptionRequestCommand implements ClientCommand {
     private static final Logger LOG = LoggerFactory.getLogger(OptionRequestCommand.class);
@@ -23,24 +27,17 @@ public class OptionRequestCommand implements ClientCommand {
                 optionRequest.addIdentifiers(OptionIdentifier.newBuilder().setType(type).setValue(value).build());
             }
         }
-        optionRequest.setSample(Option.newBuilder().setDescription("desc").build());
-        client.get(optionRequest.build(), OPTION_HANDLER);
+        ClientFuture<Response> response = client.get(optionRequest.build(), opt -> LOG.info("got option {}", opt));
+        try {
+            response.get(10000, TimeUnit.MILLISECONDS);
+            LOG.info("DONE");
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            LOG.error("Exception thrown ", e);
+        }
     }
 
     @Override
     public String getCommandName() {
         return "option";
     }
-
-    private static final ResponseHandler<Option> OPTION_HANDLER = new ResponseHandler<Option>() {
-        @Override
-        public void onResponse(Option response) {
-            LOG.info("Got option " + response);
-        }
-
-        @Override
-        public void onError(Error error) {
-            LOG.info("Option request ERROR " + error);
-        }
-    };
 }
