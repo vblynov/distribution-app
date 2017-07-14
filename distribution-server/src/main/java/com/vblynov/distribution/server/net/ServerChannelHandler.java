@@ -36,15 +36,15 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Distributi
         } else {
             String token = msg.getToken();
             if (StringUtils.isEmpty(token)) {
-                ctx.writeAndFlush(DistributionProtocol
+                ctx.channel().writeAndFlush(DistributionProtocol
                         .newBuilder(msg)
                         .setMessageType(MessageType.ERROR)
                         .setErrorMessage(Error.newBuilder().setMessage("Unauthorized").build())
+                        .build()
                 );
             } else {
-                consumerRepository.getConsumerContext(token).ifPresent(consumer -> {
-                    applicationContext.publishEvent(new DistributionEvent(msg, consumer));
-                });
+                consumerRepository.getConsumerContext(token)
+                        .ifPresent(consumer -> applicationContext.publishEvent(new DistributionEvent(msg, consumer)));
             }
         }
     }
@@ -63,9 +63,8 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Distributi
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        consumerRepository.getConsumerContext(getChannelId(ctx.channel())).ifPresent(consumer -> {
-            applicationContext.publishEvent(new ConsumerCloseEvent(consumer));
-        });
+        consumerRepository.getConsumerContext(getChannelId(ctx.channel()))
+                .ifPresent(consumer -> applicationContext.publishEvent(new ConsumerCloseEvent(consumer)));
 
     }
 

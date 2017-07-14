@@ -45,8 +45,6 @@ message LoginRequest {
 message LoginResponse {
     enum LoginResult {
         OK = 0;
-        FORBIDDEN = 1;
-        ERROR = 2;
     }
     LoginResult result = 1;
 }

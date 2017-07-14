@@ -2,6 +2,9 @@ package com.vblynov.distribution.client.exception;
 
 import com.vblynov.distirbution.model.Error;
 
+/**
+ * Client-side runtime exception to wrap {@link Error} message from server
+ */
 public class ServerException extends RuntimeException {
     private final Error serverError;
 
@@ -12,5 +15,10 @@ public class ServerException extends RuntimeException {
 
     public Error getServerError() {
         return serverError;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Received server error " + serverError;
     }
 }

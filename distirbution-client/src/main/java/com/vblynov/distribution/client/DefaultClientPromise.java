@@ -9,6 +9,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Default {@link ClientPromise} implementation. The implementation makes use of some ideas from similar purpose classes
+ * from  {@link io.netty.util.concurrent} package.
+ *
+ * @param <V> result type
+ */
 class DefaultClientPromise<V> implements ClientPromise<V> {
 
     private Future<?> wrappedFuture = null;
