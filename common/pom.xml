@@ -9,27 +9,17 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>distribution-client</artifactId>
+    <artifactId>common</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>com.vblynov.distirbution</groupId>
-            <artifactId>common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.vblynov.distirbution</groupId>
-            <artifactId>data-model</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
     </dependencies>
+
 </project>

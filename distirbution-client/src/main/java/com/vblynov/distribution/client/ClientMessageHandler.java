@@ -6,7 +6,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// TODO handle server shutdown
 class ClientMessageHandler extends SimpleChannelInboundHandler<DistributionProtocol> {
     private static final Logger LOG = LoggerFactory.getLogger(ClientMessageHandler.class);
 
@@ -26,8 +25,10 @@ class ClientMessageHandler extends SimpleChannelInboundHandler<DistributionProto
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        LOG.info("Channel closed");
-        currentClient.close();
+        LOG.info("Client channel closed");
+        if (currentClient.isClientActive()) {
+            currentClient.doClose();
+        }
     }
 
     void setClient(DefaultClient client) {

@@ -20,8 +20,9 @@
     </properties>
 
     <modules>
-        <module>distribution-server</module>
         <module>data-model</module>
+        <module>common</module>
+        <module>distribution-server</module>
         <module>distirbution-client</module>
         <module>example-client</module>
     </modules>
@@ -31,12 +32,17 @@
             <dependency>
                 <groupId>com.vblynov.distirbution</groupId>
                 <artifactId>data-model</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.vblynov.distirbution</groupId>
+                <artifactId>common</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.vblynov.distirbution</groupId>
                 <artifactId>distribution-client</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>

@@ -14,6 +14,10 @@
     <dependencies>
         <dependency>
             <groupId>com.vblynov.distirbution</groupId>
+            <artifactId>common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.vblynov.distirbution</groupId>
             <artifactId>data-model</artifactId>
         </dependency>
         <dependency>

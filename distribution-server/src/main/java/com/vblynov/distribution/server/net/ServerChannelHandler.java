@@ -63,7 +63,9 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Distributi
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        consumerRepository.getConsumerContext(getChannelId(ctx.channel()))
+        final String channelId = getChannelId(ctx.channel());
+        LOG.info("Unregistering consumer channel with token {}", channelId);
+        consumerRepository.getConsumerContext(channelId)
                 .ifPresent(consumer -> applicationContext.publishEvent(new ConsumerCloseEvent(consumer)));
 
     }

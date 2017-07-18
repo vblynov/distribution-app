@@ -1,24 +1,25 @@
 package com.vblynov.distribution.client;
 
 import com.vblynov.distirbution.model.*;
+import com.vblynov.distribution.client.exception.ClientDisconnectedException;
 import com.vblynov.distribution.client.exception.ServerException;
 import com.vblynov.distribution.client.response.ClientFuture;
 import com.vblynov.distribution.client.response.ClientFutureListener;
 import com.vblynov.distribution.client.response.Response;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
+import io.netty.util.concurrent.*;
+import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 class DefaultClient implements Client {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultClient.class);
+    private volatile boolean clientActive = true;
 
     private final Map<String, Consumer> registeredCallbacks = new ConcurrentHashMap<>();
     private final Map<String, ClientPromise> registeredPromise = new ConcurrentHashMap<>();
@@ -33,6 +34,7 @@ class DefaultClient implements Client {
 
     @Override
     public ClientFuture<LoginResponse> login(LoginRequest loginRequest) {
+        checkClientActive();
         DistributionProtocol.Builder builder = prepareMessage(DistributionProtocol.MessageType.LOGIN_REQUEST);
         DefaultClientPromise<LoginResponse> promise = new DefaultClientPromise<>(channel.write(builder.setLoginRequest(loginRequest).build()));
         registeredPromise.putIfAbsent(builder.getCorrelationId(), promise);
@@ -42,6 +44,7 @@ class DefaultClient implements Client {
 
     @Override
     public ClientFuture<Response> get(OptionRequest searchRequest, Consumer<Option> handler) {
+        checkClientActive();
         DistributionProtocol.Builder builder = prepareMessage(DistributionProtocol.MessageType.OPTION_REQUEST);
         registeredCallbacks.putIfAbsent(builder.getCorrelationId(), handler);
         DefaultClientPromise<Response> promise = new DefaultClientPromise<>(channel.write(builder.setOptionRequest(searchRequest).build()));
@@ -52,6 +55,7 @@ class DefaultClient implements Client {
 
     @Override
     public ClientFuture<Response> get(StockRequest searchRequest, Consumer<Stock> handler) {
+        checkClientActive();
         DistributionProtocol.Builder builder = prepareMessage(DistributionProtocol.MessageType.STOCK_REQUEST);
         registeredCallbacks.putIfAbsent(builder.getCorrelationId(), handler);
         DefaultClientPromise<Response> promise = new DefaultClientPromise<>(channel.write(builder.setStockRequest(searchRequest).build()));
@@ -62,24 +66,10 @@ class DefaultClient implements Client {
     @Override
     public void close() {
         try {
-            workerGroup.shutdownGracefully().sync();
+            doClose().sync();
         } catch (InterruptedException e) {
-            LOG.error("Error during client shutdown ", e);
-        } finally {
-            registeredCallbacks.clear();
-            LOG.info("Client disconnected");
+            LOG.error("Thread interrupted", e);
         }
-    }
-
-    private DistributionProtocol.Builder prepareMessage(DistributionProtocol.MessageType type) {
-        String correlationId = String.valueOf(System.nanoTime());
-        DistributionProtocol.Builder builder = DistributionProtocol.newBuilder()
-                .setMessageType(type)
-                .setCorrelationId(correlationId);
-        if (token != null) {
-            builder.setToken(token);
-        }
-        return builder;
     }
 
     void processResponse(DistributionProtocol msg) {
@@ -107,6 +97,42 @@ class DefaultClient implements Client {
                 break;
         }
     }
+
+    io.netty.util.concurrent.Future doClose() {
+        try {
+            checkClientActive();
+            clientActive = false;
+            return workerGroup
+                    .shutdownGracefully()
+                    .addListener((GenericFutureListener<Future<? super Object>>) future -> LOG.info("Client shutdown complete"));
+        } finally {
+            registeredCallbacks.clear();
+            registeredPromise.clear();
+        }
+    }
+
+    boolean isClientActive() {
+        return clientActive;
+    }
+
+    private void checkClientActive() {
+        if (!clientActive) {
+            throw new ClientDisconnectedException();
+        }
+    }
+
+    private DistributionProtocol.Builder prepareMessage(DistributionProtocol.MessageType type) {
+        String correlationId = String.valueOf(System.nanoTime());
+        DistributionProtocol.Builder builder = DistributionProtocol.newBuilder()
+                .setMessageType(type)
+                .setCorrelationId(correlationId);
+        if (token != null) {
+            builder.setToken(token);
+        }
+        return builder;
+    }
+
+    // NULL-objects for callback and promise
 
     private static final Consumer NULL_CONSUMER = new Consumer() {
         @Override
@@ -142,7 +168,7 @@ class DefaultClient implements Client {
         }
 
         @Override
-        public boolean await(long time, TimeUnit unit) throws InterruptedException, TimeoutException {
+        public boolean await(long time, TimeUnit unit) throws InterruptedException {
             return false;
         }
 
