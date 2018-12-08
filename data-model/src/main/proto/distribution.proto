@@ -1,5 +1,5 @@
 syntax = "proto3";
-package com.vblynov.distirbution.model;
+package com.vbl.distirbution.model;
 option java_multiple_files = true;
 
 //*************************************** Main wrapper *****************************************************************

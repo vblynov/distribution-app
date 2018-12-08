@@ -5,7 +5,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.vblynov.distirbution" level="INFO"/>
+    <logger name="com.vbl.distirbution" level="INFO"/>
     <logger name="org.springframework" level="WARN"/>
 
     <root level="INFO">
